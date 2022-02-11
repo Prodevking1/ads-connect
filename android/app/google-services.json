@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "955529342807",
+    "project_id": "adsconnect-70873",
+    "storage_bucket": "adsconnect-70873.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:955529342807:android:a86f411c48f4edfa6f9812",
+        "android_client_info": {
+          "package_name": "com.example.main_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "955529342807-9208aasvstrocipjqt59433jk599qm5u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3I87zUsrzbeastZM0fMaSwecEgn5fs8Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "955529342807-9208aasvstrocipjqt59433jk599qm5u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
