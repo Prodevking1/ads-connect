@@ -375,22 +375,28 @@ class _SingnupPageState extends State<SingnupPage> {
         "user": userController.text,
         "email": emailController.text,
         "phone": phoneController.text,
-      }).catchError((error) {
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                  title: Text('Erreur'),
-                  content: Text(error.message),
-                  actions: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Ok'))
-                  ]);
-            });
+      }).then((res) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Home(uid: result.user!.uid)),
+        );
       });
+    }).catchError((error) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                title: Text('Erreur'),
+                content: Text(error.message),
+                actions: [
+                  TextButton(
+                    child: Text("Ok"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  )
+                ]);
+          });
     });
   }
 }
