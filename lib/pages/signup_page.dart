@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:main_app/ressources/themes.dart';
@@ -36,7 +37,9 @@ class _SingnupPageState extends State<SingnupPage> {
   }
 
   final _formKey = GlobalKey<FormState>();
+
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
   DatabaseReference dbRef = FirebaseDatabase.instance.ref().child("Users");
 
   @override
@@ -376,171 +379,39 @@ class _SingnupPageState extends State<SingnupPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Home(uid: result.user!.uid)),
-        );
+        ).then((res) {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                    title: Text('Erreur'),
+                    content: Text(
+                        'Votre compte est maintenant crée, vous pouvez vous connecter'),
+                    actions: [
+                      TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Ok'))
+                    ]);
+              });
+        });
+      }).catchError((error) {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                  title: Text('Erreur'),
+                  content: Text(error.message),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Ok'))
+                  ]);
+            });
       });
     });
-    if (status == AuthResultStatus.successful) {
-      // Navigate to success page
-    } else {
-      final errorMsg = AuthExceptionHandler.generateExceptionMessage(status);
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Erreur"),
-              content: Text(errorMsg),
-              actions: [
-                TextButton(
-                  child: const Text("Ok"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            );
-          });
-    } /* .catchError((error) {
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          var errorMessage = 'Adresse e-mail en cours d\'utilisation';
-      }
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Erreur"),
-              content: Text(error.message),
-              actions: [
-                TextButton(
-                  child: const Text("Ok"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            );
-          });
-    }); */
   }
-}
-
-class AuthExceptionHandler {
-  static handleException(e) {
-    print(e.code);
-    AuthResultStatus status;
-    switch (e.code) {
-      case "ERROR_INVALID_EMAIL":
-        status = AuthResultStatus.invalidEmail;
-        break;
-      case "ERROR_WRONG_PASSWORD":
-        status = AuthResultStatus.wrongPassword;
-        break;
-      case "ERROR_USER_NOT_FOUND":
-        status = AuthResultStatus.userNotFound;
-        break;
-      case "ERROR_USER_DISABLED":
-        status = AuthResultStatus.userDisabled;
-        break;
-      case "ERROR_TOO_MANY_REQUESTS":
-        status = AuthResultStatus.tooManyRequests;
-        break;
-      case "ERROR_OPERATION_NOT_ALLOWED":
-        status = AuthResultStatus.operationNotAllowed;
-        break;
-      case "ERROR_EMAIL_ALREADY_IN_USE":
-        status = AuthResultStatus.emailAlreadyExists;
-        break;
-      default:
-        status = AuthResultStatus.undefined;
-    }
-    return status;
-  }
-
-  static generateExceptionMessage(exceptionCode) {
-    String errorMessage;
-    switch (exceptionCode) {
-      case AuthResultStatus.invalidEmail:
-        errorMessage = "Adresee e-mail invalide";
-        break;
-      case AuthResultStatus.wrongPassword:
-        errorMessage = "Mot de passe incorrect.";
-        break;
-      case AuthResultStatus.userNotFound:
-        errorMessage = "Adresse e-mail non existant";
-        break;
-      case AuthResultStatus.userDisabled:
-        errorMessage = "Utilisateur suspendu";
-        break;
-      case AuthResultStatus.tooManyRequests:
-        errorMessage = "Trop de requetes. Veuillez réessayer.";
-        break;
-      case AuthResultStatus.operationNotAllowed:
-        errorMessage = "Signing in with Email and Password is not enabled.";
-        break;
-      case AuthResultStatus.emailAlreadyExists:
-        errorMessage = "Adresse e-mail deja utilisé.";
-        break;
-      default:
-        errorMessage = "Un erreur s'est produite.";
-    }
-
-    return errorMessage;
-  }
-}
-
-class FirebaseAuthHelper {
-  final _auth = FirebaseAuth.instance;
-  late AuthResultStatus _status;
-
-  ///
-  /// Helper Functions
-  ///
-  Future<AuthResultStatus> createAccount({email, pass}) async {
-    try {
-      final authResult = await _auth.createUserWithEmailAndPassword(
-          email: email, password: pass);
-      if (authResult.user != null) {
-        _status = AuthResultStatus.successful;
-      } else {
-        _status = AuthResultStatus.undefined;
-      }
-    } catch (e) {
-      print('Exception @createAccount: $e');
-      _status = AuthExceptionHandler.handleException(e);
-    }
-    return _status;
-  }
-
-  Future<AuthResultStatus> login({email, pass}) async {
-    try {
-      final authResult =
-          await _auth.signInWithEmailAndPassword(email: email, password: pass);
-
-      if (authResult.user != null) {
-        _status = AuthResultStatus.successful;
-      } else {
-        _status = AuthResultStatus.undefined;
-      }
-    } catch (e) {
-      print('Exception @createAccount: $e');
-      _status = AuthExceptionHandler.handleException(e);
-    }
-    return _status;
-  }
-
-  logout() {
-    _auth.signOut();
-  }
-}
-
-enum AuthResultStatus {
-  successful,
-  emailAlreadyExists,
-  wrongPassword,
-  invalidEmail,
-  userNotFound,
-  userDisabled,
-  operationNotAllowed,
-  tooManyRequests,
-  undefined,
 }
