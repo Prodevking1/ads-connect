@@ -375,27 +375,6 @@ class _SingnupPageState extends State<SingnupPage> {
         "user": userController.text,
         "email": emailController.text,
         "phone": phoneController.text,
-      }).then((res) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Home(uid: result.user!.uid)),
-        ).then((res) {
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                    title: Text('Erreur'),
-                    content: Text(
-                        'Votre compte est maintenant crée, vous pouvez vous connecter'),
-                    actions: [
-                      TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Ok'))
-                    ]);
-              });
-        });
       }).catchError((error) {
         showDialog(
             context: context,
