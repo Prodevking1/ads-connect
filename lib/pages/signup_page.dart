@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:main_app/ressources/themes.dart';
@@ -36,7 +37,9 @@ class _SingnupPageState extends State<SingnupPage> {
   }
 
   final _formKey = GlobalKey<FormState>();
+
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
   DatabaseReference dbRef = FirebaseDatabase.instance.ref().child("Users");
 
   @override
@@ -378,8 +381,25 @@ class _SingnupPageState extends State<SingnupPage> {
           MaterialPageRoute(builder: (context) => Home(uid: result.user!.uid)),
         );
       });
+    }).catchError((error) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                title: Text('Erreur'),
+                content: Text(error.message),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('Ok'))
+                ]);
+          });
     });
-    if (status == AuthResultStatus.successful) {
+  }
+}
+    /* if (status == AuthResultStatus.successful) {
       // Navigate to success page
     } else {
       final errorMsg = AuthExceptionHandler.generateExceptionMessage(status);
@@ -399,28 +419,7 @@ class _SingnupPageState extends State<SingnupPage> {
               ],
             );
           });
-    } /* .catchError((error) {
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          var errorMessage = 'Adresse e-mail en cours d\'utilisation';
-      }
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Erreur"),
-              content: Text(error.message),
-              actions: [
-                TextButton(
-                  child: const Text("Ok"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            );
-          });
-    }); */
+    } 
   }
 }
 
@@ -429,7 +428,7 @@ class AuthExceptionHandler {
     print(e.code);
     AuthResultStatus status;
     switch (e.code) {
-      case "ERROR_INVALID_EMAIL":
+      case "auth/email-already-exists":
         status = AuthResultStatus.invalidEmail;
         break;
       case "ERROR_WRONG_PASSWORD":
@@ -543,4 +542,4 @@ enum AuthResultStatus {
   operationNotAllowed,
   tooManyRequests,
   undefined,
-}
+}*/
