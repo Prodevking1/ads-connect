@@ -27,9 +27,10 @@ class _SingnupPageState extends State<SingnupPage> {
   TextEditingController confirmPasswordController = TextEditingController();
 
   bool passwordVisibility = false;
+  var laoding = false;
 
-  get status => null;
-
+/*   late String errorMessage;
+ */
   void tooglePassword() {
     setState(() {
       passwordVisibility = !passwordVisibility;
@@ -38,8 +39,8 @@ class _SingnupPageState extends State<SingnupPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseAuth firebase_auth = FirebaseAuth.instance;
+  FirebaseFirestore firebase_store = FirebaseFirestore.instance;
   DatabaseReference dbRef = FirebaseDatabase.instance.ref().child("Users");
 
   @override
@@ -53,6 +54,11 @@ class _SingnupPageState extends State<SingnupPage> {
     passwordController.dispose();
     confirmPasswordController.dispose();
   }
+
+  /* @override
+  void initState() {
+    super.initState();
+  } */
 
   @override
   Widget build(BuildContext context) {
@@ -322,6 +328,9 @@ class _SingnupPageState extends State<SingnupPage> {
                               ),
                             ),
                           ),
+                          if (laoding) ...[
+                            const Center(child: CircularProgressIndicator())
+                          ],
                           const SizedBox(
                             height: 50.0,
                           ),
@@ -338,7 +347,8 @@ class _SingnupPageState extends State<SingnupPage> {
                               child: TextButton(
                                 onPressed: () async {
                                   if (_formKey.currentState!.validate()) {
-                                    registerUser();
+                                    _onLoading();
+                                    _SignUp();
                                   }
                                 },
                                 child: Center(
@@ -364,39 +374,94 @@ class _SingnupPageState extends State<SingnupPage> {
     );
   }
 
-  void registerUser() {
-    firebaseAuth
-        .createUserWithEmailAndPassword(
-            email: emailController.text, password: passwordController.text)
-        .then((result) {
-      dbRef.child(result.user!.uid).set({
-        "lastName": lastnameController.text,
-        "firstName": firstnameController.text,
-        "user": userController.text,
-        "email": emailController.text,
-        "phone": phoneController.text,
-      }).then((res) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Home(uid: result.user!.uid)),
-        );
+  Future _SignUp() async {
+    setState(() {
+      laoding = true;
+    });
+    try {
+      await firebase_auth.createUserWithEmailAndPassword(
+          email: emailController.text, password: passwordController.text);
+
+      await firebase_store.collection('Users').add({
+        'nom': firstnameController.text,
+        'prenom': lastnameController.text,
+        'user': userController.text,
+        'email': emailController.text,
+        'tel': phoneController.text,
       });
-    }).catchError((error) {
-      showDialog(
+
+      await showDialog(
           context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-                title: Text('Erreur'),
-                content: Text(error.message),
+          builder: (context) => AlertDialog(
+                title: const Text('Erreur'),
+                content: const Text(
+                    'Compte cree avec succes. Vous pouvez vous connecter maintenat.'),
                 actions: [
                   TextButton(
-                    child: Text("Ok"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text("D'accord"))
+                ],
+              ));
+    } on FirebaseAuthException catch (e) {
+      _HandleSignUpError(e);
+      setState(() {
+        laoding = false;
+      });
+    }
+  }
+
+  // ignore: non_constant_identifier_names
+  
+  void _HandleSignUpError(FirebaseAuthException e) {
+    var errorMessage;
+    switch (e.code) {
+      case 'auth/email-already-exists':
+        errorMessage =
+            "L'adresse e-mail fournie est déjà utilisée par un utilisateur existant.";
+        break;
+      case 'auth/phone-number-already-exists':
+        errorMessage =
+            "Le numero de telephone fourni est déjà utilisée par un utilisateur existant.";
+        break;
+      default:
+        errorMessage = "Une erreur s'est produite";
+    }
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text('Erreur'),
+              content: Text(errorMessage),
+              actions: [
+                TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                  )
-                ]);
-          });
+                    child: const Text("D'accord"))
+              ],
+            ));
+  }
+
+  void _onLoading() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: new Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              new CircularProgressIndicator(),
+              new Text("Loading"),
+            ],
+          ),
+        );
+      },
+    );
+    new Future.delayed(new Duration(seconds: 3), () {
+      Navigator.pop(context);
+      _SignUp();
     });
   }
 }
