@@ -27,7 +27,7 @@ class _SingnupPageState extends State<SingnupPage> {
   TextEditingController confirmPasswordController = TextEditingController();
 
   bool passwordVisibility = false;
-  var laoding = false;
+  var loading = false;
 
 /*   late String errorMessage;
  */
@@ -328,9 +328,6 @@ class _SingnupPageState extends State<SingnupPage> {
                               ),
                             ),
                           ),
-                          if (laoding) ...[
-                            const Center(child: CircularProgressIndicator())
-                          ],
                           const SizedBox(
                             height: 50.0,
                           ),
@@ -347,7 +344,7 @@ class _SingnupPageState extends State<SingnupPage> {
                               child: TextButton(
                                 onPressed: () async {
                                   if (_formKey.currentState!.validate()) {
-                                    _onLoading();
+                                    /* _onLoading(); */
                                     _SignUp();
                                   }
                                 },
@@ -376,7 +373,7 @@ class _SingnupPageState extends State<SingnupPage> {
 
   Future _SignUp() async {
     setState(() {
-      laoding = true;
+      loading = true;
     });
     try {
       await firebase_auth.createUserWithEmailAndPassword(
@@ -395,7 +392,7 @@ class _SingnupPageState extends State<SingnupPage> {
           builder: (context) => AlertDialog(
                 title: const Text('Erreur'),
                 content: const Text(
-                    'Compte cree avec succes. Vous pouvez vous connecter maintenat.'),
+                    'Compte cree avec succes. Vous pouvez vous connecter maintenant.'),
                 actions: [
                   TextButton(
                       onPressed: () {
@@ -407,27 +404,29 @@ class _SingnupPageState extends State<SingnupPage> {
     } on FirebaseAuthException catch (e) {
       _HandleSignUpError(e);
       setState(() {
-        laoding = false;
+        loading = false;
       });
     }
   }
 
-  // ignore: non_constant_identifier_names
-  
   void _HandleSignUpError(FirebaseAuthException e) {
-    var errorMessage;
+    String errorMessage;
     switch (e.code) {
-      case 'auth/email-already-exists':
+      case 'email-already-in-use':
         errorMessage =
             "L'adresse e-mail fournie est déjà utilisée par un utilisateur existant.";
         break;
-      case 'auth/phone-number-already-exists':
+      case 'phone-number-already-exists':
         errorMessage =
             "Le numero de telephone fourni est déjà utilisée par un utilisateur existant.";
+        break;
+      case 'network-request-failed':
+        errorMessage = "Verifier votre connexion internet.";
         break;
       default:
         errorMessage = "Une erreur s'est produite";
     }
+    print(e.code);
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -443,25 +442,27 @@ class _SingnupPageState extends State<SingnupPage> {
             ));
   }
 
-  void _onLoading() {
+  /* void _onLoading() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Dialog(
-          child: new Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              new CircularProgressIndicator(),
-              new Text("Loading"),
-            ],
-          ),
-        );
+        return AlertDialog(
+            content: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: const <Widget>[
+            CircularProgressIndicator(),
+            SizedBox(
+              width: 5.0,
+            ),
+            Text('Inscription en cours...'),
+          ],
+        ));
       },
     );
-    new Future.delayed(new Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       Navigator.pop(context);
       _SignUp();
     });
-  }
+  } */
 }
