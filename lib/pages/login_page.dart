@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:main_app/ressources/themes.dart';
@@ -15,16 +17,20 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  late String email;
-  late String password;
-  bool passwordVisibility = false;
-  void tooglePassword() {
-    setState(() {
-      passwordVisibility = !passwordVisibility;
-    });
-  }
+  TextEditingController userController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
 
+  bool passwordVisibility = false;
+  var loading;
+  var errorMessage;
   final _keyForm = GlobalKey<FormState>();
+
+  FirebaseAuth firebase_auth = FirebaseAuth.instance;
+  FirebaseFirestore firebase_store = FirebaseFirestore.instance;
+
+  get uid => null;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(50.0),
                           ),
                           child: TextFormField(
-                            onChanged: (text) => email = text,
+                            controller: emailController,
                             style: const TextStyle(
                                 color: Colors.blue,
                                 fontWeight: FontWeight.bold),
@@ -105,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(60.0),
                           ),
                           child: TextFormField(
-                            onChanged: (text) => password = text,
+                            controller: passwordController,
                             style: const TextStyle(
                                 color: Colors.blue,
                                 fontWeight: FontWeight.bold),
@@ -168,12 +174,8 @@ class _LoginPageState extends State<LoginPage> {
                             color: Colors.blue.shade500,
                             child: TextButton(
                               onPressed: () async {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const Home(
-                                              uid: null,
-                                            )));
+                                _onLoading();
+                                _singnIn();
                               },
                               child: Center(
                                 child: Text(
@@ -210,6 +212,101 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  // fonctions
+  void tooglePassword() {
+    setState(() {
+      passwordVisibility = !passwordVisibility;
+    });
+  }
+
+  // Connecter un utilisateur
+  Future _singnIn() async {
+    setState(() {
+      loading = true;
+    });
+    try {
+      await firebase_auth.signInWithEmailAndPassword(
+          email: emailController.text, password: passwordController.text);
+      await Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const Home()));
+    } on FirebaseAuthException catch (e) {
+      _handleSignInError(e);
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  // erreurs lors de la connexion
+  _handleSignInError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        errorMessage = 'Adresse e-mail non valide';
+        break;
+      case 'user-disabled':
+        errorMessage = 'Cet compte a ete desactive';
+        break;
+      case 'user-not-found':
+        errorMessage = 'Adresse e-mail ou mot de passe invalide';
+        break;
+      case 'network-request-failed':
+        errorMessage = "Verifier votre connexion internet.";
+        break;
+      case 'wrong-password':
+        errorMessage = "Adresse e-mail ou mot de passe invalide";
+        break;
+      default:
+        errorMessage = "Adresse e-mail ou mot de passe invalide";
+    }
+    showDialog(
+      context: context,
+      builder: (context) => Container(
+        child: AlertDialog(
+          title: const Text('Erreur'),
+          content: Text(errorMessage),
+          actions: [
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text("D'accord"))
+          ],
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(100.0),
+        ),
+      ),
+    );
+    print(errorMessage);
+  }
+
+  // popup chargement
+  void _onLoading() {
+    BuildContext? dialogContext;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: const <Widget>[
+              CircularProgressIndicator(),
+              SizedBox(
+                width: 10.0,
+              ),
+              Text('Connexion en cours...'),
+            ],
+          ),
+        );
+      },
+    );
+    Future.delayed(const Duration(seconds: 3), () {
+      Navigator.pop(context);
+      Navigator.pop(context, dialogContext);
+    });
   }
 }
 

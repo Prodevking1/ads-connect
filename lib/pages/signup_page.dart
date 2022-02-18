@@ -10,12 +10,9 @@ import 'package:firebase_database/firebase_database.dart';
 
 class SingnupPage extends StatefulWidget {
   SingnupPage({Key? key}) : super(key: key);
-  bool visibilityPassword = false;
 
   @override
   State<SingnupPage> createState() => _SingnupPageState();
-
-  void onSubmit(String name) {}
 }
 
 class _SingnupPageState extends State<SingnupPage> {
@@ -41,7 +38,6 @@ class _SingnupPageState extends State<SingnupPage> {
 
   FirebaseAuth firebase_auth = FirebaseAuth.instance;
   FirebaseFirestore firebase_store = FirebaseFirestore.instance;
-  DatabaseReference dbRef = FirebaseDatabase.instance.ref().child("Users");
 
   @override
   void dispose() {
@@ -386,7 +382,7 @@ class _SingnupPageState extends State<SingnupPage> {
       await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-                title: const Text('Erreur'),
+                title: const Text('Fellicitations'),
                 content: const Text(
                     'Compte cree avec succes. Vous pouvez vous connecter maintenant.'),
                 actions: [
@@ -399,7 +395,7 @@ class _SingnupPageState extends State<SingnupPage> {
                 ],
               ));
     } on FirebaseAuthException catch (e) {
-      _HandleSignUpError(e);
+      _handleSignUpError(e);
       setState(() {
         loading = false;
       });
@@ -407,7 +403,7 @@ class _SingnupPageState extends State<SingnupPage> {
   }
 
   // Erreurs lors de la creation du compte
-  void _HandleSignUpError(FirebaseAuthException e) {
+  void _handleSignUpError(FirebaseAuthException e) {
     switch (e.code) {
       case 'email-already-in-use':
         errorMessage =
