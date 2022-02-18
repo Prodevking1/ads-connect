@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:main_app/pages/login_page.dart';
 import 'package:main_app/ressources/themes.dart';
 import 'package:main_app/pages/home_page.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,7 +21,7 @@ class SingnupPage extends StatefulWidget {
 class _SingnupPageState extends State<SingnupPage> {
   TextEditingController lastnameController = TextEditingController();
   TextEditingController firstnameController = TextEditingController();
-  TextEditingController userController = TextEditingController();
+  late TextEditingController userController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -28,9 +29,8 @@ class _SingnupPageState extends State<SingnupPage> {
 
   bool passwordVisibility = false;
   var loading = false;
+  var errorMessage;
 
-/*   late String errorMessage;
- */
   void tooglePassword() {
     setState(() {
       passwordVisibility = !passwordVisibility;
@@ -54,11 +54,6 @@ class _SingnupPageState extends State<SingnupPage> {
     passwordController.dispose();
     confirmPasswordController.dispose();
   }
-
-  /* @override
-  void initState() {
-    super.initState();
-  } */
 
   @override
   Widget build(BuildContext context) {
@@ -344,7 +339,7 @@ class _SingnupPageState extends State<SingnupPage> {
                               child: TextButton(
                                 onPressed: () async {
                                   if (_formKey.currentState!.validate()) {
-                                    /* _onLoading(); */
+                                    _onLoading();
                                     _SignUp();
                                   }
                                 },
@@ -371,6 +366,7 @@ class _SingnupPageState extends State<SingnupPage> {
     );
   }
 
+  // Enregister un utilisateur
   Future _SignUp() async {
     setState(() {
       loading = true;
@@ -382,7 +378,7 @@ class _SingnupPageState extends State<SingnupPage> {
       await firebase_store.collection('Users').add({
         'nom': firstnameController.text,
         'prenom': lastnameController.text,
-        'user': userController.text,
+        'username': userController.text,
         'email': emailController.text,
         'tel': phoneController.text,
       });
@@ -396,7 +392,8 @@ class _SingnupPageState extends State<SingnupPage> {
                 actions: [
                   TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const LoginPage(title: '')));
                       },
                       child: const Text("D'accord"))
                 ],
@@ -409,8 +406,8 @@ class _SingnupPageState extends State<SingnupPage> {
     }
   }
 
+  // Erreurs lors de la creation du compte
   void _HandleSignUpError(FirebaseAuthException e) {
-    String errorMessage;
     switch (e.code) {
       case 'email-already-in-use':
         errorMessage =
@@ -426,7 +423,7 @@ class _SingnupPageState extends State<SingnupPage> {
       default:
         errorMessage = "Une erreur s'est produite";
     }
-    print(e.code);
+
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -442,27 +439,43 @@ class _SingnupPageState extends State<SingnupPage> {
             ));
   }
 
-  /* void _onLoading() {
+  // popup chargement
+  void _onLoading() {
+    BuildContext? dialogContext;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-            content: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: const <Widget>[
-            CircularProgressIndicator(),
-            SizedBox(
-              width: 5.0,
-            ),
-            Text('Inscription en cours...'),
-          ],
-        ));
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: const <Widget>[
+              CircularProgressIndicator(),
+              SizedBox(
+                width: 10.0,
+              ),
+              Text('Inscription en cours...'),
+            ],
+          ),
+        );
       },
     );
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.pop(context);
-      _SignUp();
+      Navigator.pop(context, dialogContext);
     });
-  } */
+  }
+
+  // Verifier si l'utilisateur existe
+  userExists(String username) async {
+    try {
+      await firebase_store
+          .collection("users")
+          .where('username', isEqualTo: username)
+          .get()
+          .then((value) => value.size > 0 ? true : false);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
 }
