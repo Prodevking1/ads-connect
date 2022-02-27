@@ -5,7 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:main_app/ressources/themes.dart';
 import 'package:main_app/pages/signup_page.dart';
 import 'package:main_app/pages/forgot_password.dart';
-import 'package:main_app/pages/home_page.dart';
+import 'package:main_app/pages/client_home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key, required this.title}) : super(key: key);
@@ -174,7 +174,8 @@ class _LoginPageState extends State<LoginPage> {
                             color: Colors.blue.shade500,
                             child: TextButton(
                               onPressed: () async {
-                                _onLoading();
+/*                                 _onLoading();
+ */
                                 _singnIn();
                               },
                               child: Center(
@@ -283,7 +284,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // popup chargement
-  void _onLoading() {
+  /* void _onLoading() {
     BuildContext? dialogContext;
     showDialog(
       context: context,
@@ -307,7 +308,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pop(context);
       Navigator.pop(context, dialogContext);
     });
-  }
+  } */
 }
 
 class MyClipper extends CustomClipper<Path> {

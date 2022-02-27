@@ -32,6 +32,33 @@ TextStyle regular16pt = const TextStyle(
   fontWeight: FontWeight.w400,
 );
 
+TextStyle StyledArial1 = TextStyle(
+  fontSize: 16,
+  fontWeight: FontWeight.w600,
+  color: colorWhite,
+  fontFamily: 'Arial',
+);
+
+TextStyle StyledArial2 = TextStyle(
+  fontSize: 16,
+  fontWeight: FontWeight.w600,
+  color: colorWhite,
+  fontFamily: 'Arial',
+);
+TextStyle StyledUbuntu1 = TextStyle(
+  fontSize: 20,
+  fontWeight: FontWeight.w600,
+  fontFamily: 'Ubuntu',
+  color: colorBlue,
+);
+
+TextStyle StyledUbuntu2 = TextStyle(
+  fontSize: 26,
+  fontWeight: FontWeight.w600,
+  fontFamily: 'Ubuntu',
+  color: colorWhite,
+);
+
 // Icons
 
 Icon user = Icon(Icons.vpn_key_rounded, color: textGrey);

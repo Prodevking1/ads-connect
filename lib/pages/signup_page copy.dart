@@ -472,7 +472,6 @@ class _SingnupPageState extends State<SingnupPage> {
     );
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.pop(context);
-
       Navigator.pop(context, dialogContext);
     });
   }
